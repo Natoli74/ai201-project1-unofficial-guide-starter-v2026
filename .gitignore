@@ -11,6 +11,7 @@ env/
 
 # Jupyter
 .ipynb_checkpoints/
+notes/
 
 # Local vector store — rebuilt by `python app.py index`
 chroma_db/

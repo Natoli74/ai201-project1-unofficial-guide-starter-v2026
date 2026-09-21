@@ -3,17 +3,16 @@ Stage 2 of the pipeline: splitting documents into chunks.
 
 ⚠️ THIS IS THE FILE YOU CHANGE IN MILESTONE 3.
 
-`split_documents` below is deliberately plain. It cuts every document into
-fixed-size pieces with a fixed overlap and pays no attention to where sentences
-or paragraphs end. It works, and it is not good.
+`split_documents` groups Markdown guides by section and adds the guide and
+section context to every generated chunk.
 
 On a corpus of short posts it may not cut anything at all: `campus_life` comes
 out as 88 documents and 88 chunks, because almost nothing in it reaches 800
 characters. That is the baseline, not a bug — Milestone 3 is where you decide
 whether one post should stay one chunk.
 
-Your job in Milestone 3 is to replace the *body* of `split_documents` with a
-strategy that fits the documents you actually read in Milestone 1. Keep the
+Your job in Milestone 3 is to use a strategy that fits the documents you
+actually read in Milestone 1. Keep the
 name and the shape of what it returns — the rest of the pipeline calls it, and
 your README has to name the function that produced your chunks.
 
@@ -23,6 +22,7 @@ your pipeline, not giving up.
 """
 
 from dataclasses import dataclass
+import re
 
 import config
 from ingest import Document
@@ -82,22 +82,74 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split Markdown guides into section-local, header-aware chunks.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
-
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Each chunk repeats its guide and section context so it remains useful when
+    retrieved without the surrounding document.
     """
-    return fallback_split(documents)
+    chunks: list[Chunk] = []
+    for doc in documents:
+        title, sections = _markdown_sections(doc)
+        for heading, body in sections:
+            context = f"{title} - {heading}"
+            body_limit = config.CHUNK_SIZE - len(context) - 2
+            if body_limit <= config.CHUNK_OVERLAP:
+                raise ValueError("chunk size must leave room for metadata and overlap")
+
+            for piece in _overlapping_windows(body, body_limit, config.CHUNK_OVERLAP):
+                chunks.append(
+                    Chunk(
+                        text=f"{context}\n\n{piece}",
+                        source=doc.source,
+                        index=sum(chunk.source == doc.source for chunk in chunks),
+                        produced_by="chunker.py::split_documents",
+                    )
+                )
+
+    return chunks
+
+
+def _markdown_sections(doc: Document) -> tuple[str, list[tuple[str, str]]]:
+    """Return the guide title and the text grouped beneath each ``##`` header."""
+    lines = doc.text.splitlines()
+    title = next(
+        (match.group(1).strip() for line in lines if (match := re.match(r"^#\s+(.+?)\s*$", line))),
+        doc.source.rsplit(".", 1)[0].replace("_", " ").title(),
+    )
+
+    sections: list[tuple[str, str]] = []
+    heading = "Introduction"
+    content: list[str] = []
+    for line in lines:
+        match = re.match(r"^##\s+(.+?)\s*$", line)
+        if match:
+            if "\n".join(content).strip():
+                sections.append((heading, "\n".join(content).strip()))
+            heading = match.group(1).strip()
+            content = []
+            continue
+        if line == f"# {title}" and not sections and not content:
+            continue
+        content.append(line)
+
+    if "\n".join(content).strip():
+        sections.append((heading, "\n".join(content).strip()))
+    return title, sections
+
+
+def _overlapping_windows(text: str, window_size: int, overlap: int) -> list[str]:
+    """Split one section into bounded windows without crossing section edges."""
+    if not text:
+        return []
+    step = window_size - overlap
+    pieces: list[str] = []
+    start = 0
+    while start < len(text):
+        piece = text[start : start + window_size].strip()
+        if piece:
+            pieces.append(piece)
+        start += step
+    return pieces
 
 
 def describe(chunks: list[Chunk]) -> str:

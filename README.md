@@ -1,7 +1,5 @@
 # The Unofficial Guide
 
-<!-- Replace this line with your name and which corpus you picked. -->
-
 > **This file is your submission.** Fill it in as you go — most sections get
 > written during the milestone that produces them, not at the end.
 >
@@ -164,6 +162,12 @@ and added explicit `Introduction` handling in `split_documents`.
 thresholds. It identified subjective wording as a risk, so I expressed the
 chunk integrity target as 100% header context and the relevance target as
 explicit distance ranges with zero false positives.
+
+**3.** I asked Copilot to compare the repeated before and after evaluation
+logs for failure patterns. The consistent results showed that retrieval,
+source citation, and gate refusal all passed, while the bus-ticket query alone
+missed the strict distance target at `0.632330`; that diagnosis led to the
+single targeted `TOP_K` reduction from 5 to 3 and a measured after run.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never

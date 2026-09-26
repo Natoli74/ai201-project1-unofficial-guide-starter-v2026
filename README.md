@@ -190,13 +190,13 @@ explicit distance ranges with zero false positives.
 
      Milestone 1. -->
 
-| Criterion                              | Target | Run 1 | Run 2 | Run 3 | Verdict |
-| -------------------------------------- | ------ | ----- | ----- | ----- | ------- |
-| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 2. Every answer names a source         | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 3. Gate stops out-of-corpus questions  | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 4. Chunk integrity                     | 100%   | 100%   | 100%   | 100%   | MET |
-| 5. Relevance gate distance gap         | <0.60 / >0.80 | MISSED | MISSED | MISSED | MISSED |
+| Criterion                              | Target        | Run 1  | Run 2  | Run 3  | Verdict |
+| -------------------------------------- | ------------- | ------ | ------ | ------ | ------- |
+| 1. Retrieved chunk contains the answer | 4 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 2. Every answer names a source         | 5 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 3. Gate stops out-of-corpus questions  | 4 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 4. Chunk integrity                     | 100%          | 100%   | 100%   | 100%   | MET     |
+| 5. Relevance gate distance gap         | <0.60 / >0.80 | MISSED | MISSED | MISSED | MISSED  |
 
 Raw evidence from `run_eval.py::main`, using `store.py::search` and
 `chunker.py::split_documents`:
@@ -243,6 +243,12 @@ out-of-scope: 0.829332 to 0.902628
 
 The measured in-scope maximum did not satisfy the strict `<0.60` requirement.
 
+Three-round deterministic evidence is recorded in
+`results/qualification_checks_2026-09-26.md`, produced by
+`tools/qualification_checks.py::main`. It records gate refusal, chunk
+integrity, and distance measurements for rounds 1 through 3; the model-backed
+criteria use the three uncached runs in each before and after evaluation log.
+
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
@@ -258,13 +264,13 @@ The measured in-scope maximum did not satisfy the strict `<0.60` requirement.
 
      Milestone 2. -->
 
-| #   | Criterion | Verdict | How I decided |
-| --- | --------- | ------- | ------------- |
-| 1 | Retrieval accuracy | MET | All five questions retrieved chunks containing the expected answer in all three runs, giving 5 of 5 each time against a 4 of 5 target. |
-| 2 | Source citation | MET | Every one of the 15 generated answers named at least one source file, meeting 5 of 5 in every run. |
-| 3 | Relevance gate refusal | MET | The deterministic gate refused all 5 out-of-scope questions, exceeding the 4 of 5 target. |
-| 4 | Chunk integrity | MET | All 94 generated chunks had the required guide and section prefix and stayed under the 1200-character ceiling. |
-| 5 | Relevance Gate Distance Gap | MISSED | Four in-scope distances were below 0.60, but the bus-ticket question was 0.632330, so the strict target did not hold. |
+| #   | Criterion                   | Verdict | How I decided                                                                                                                          |
+| --- | --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Retrieval accuracy          | MET     | All five questions retrieved chunks containing the expected answer in all three runs, giving 5 of 5 each time against a 4 of 5 target. |
+| 2   | Source citation             | MET     | Every one of the 15 generated answers named at least one source file, meeting 5 of 5 in every run.                                     |
+| 3   | Relevance gate refusal      | MET     | The deterministic gate refused all 5 out-of-scope questions, exceeding the 4 of 5 target.                                              |
+| 4   | Chunk integrity             | MET     | All 94 generated chunks had the required guide and section prefix and stayed under the 1200-character ceiling.                         |
+| 5   | Relevance Gate Distance Gap | MISSED  | Four in-scope distances were below 0.60, but the bus-ticket question was 0.632330, so the strict target did not hold.                  |
 
 ## Diagnoses
 
@@ -295,13 +301,13 @@ changing the embedding model, chunking strategy, or gate threshold.
 <!-- Same format, same five criteria, three runs each.
      `python run_eval.py --label after` -->
 
-| Criterion                              | Target | Run 1 | Run 2 | Run 3 | Verdict |
-| -------------------------------------- | ------ | ----- | ----- | ----- | ------- |
-| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 2. Every answer names a source         | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 3. Gate stops out-of-corpus questions  | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
-| 4. Chunk integrity                     | 100%   | 100%   | 100%   | 100%   | MET |
-| 5. Relevance gate distance gap         | <0.60 / >0.80 | MISSED | MISSED | MISSED | MISSED |
+| Criterion                              | Target        | Run 1  | Run 2  | Run 3  | Verdict |
+| -------------------------------------- | ------------- | ------ | ------ | ------ | ------- |
+| 1. Retrieved chunk contains the answer | 4 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 2. Every answer names a source         | 5 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 3. Gate stops out-of-corpus questions  | 4 of 5        | 5 of 5 | 5 of 5 | 5 of 5 | MET     |
+| 4. Chunk integrity                     | 100%          | 100%   | 100%   | 100%   | MET     |
+| 5. Relevance gate distance gap         | <0.60 / >0.80 | MISSED | MISSED | MISSED | MISSED  |
 
 **Did it help?**
 Yes, partially. The after run preserved 5 of 5 retrieval answers, 15 of 15
